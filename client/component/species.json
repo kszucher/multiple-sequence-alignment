@@ -1,0 +1,25 @@
+["Giardia lamblia",
+  ["Leishmania major",
+    [["Thalassiosira pseudonana",
+      ["Cryptosporidium hominis", "Plasmodium falciparum"]],
+      [["Cyanidioschyzon merolae",
+        ["Oryza sativa", "Arabidopsis thaliana"]],
+        ["Dictyostelium discoideum",
+          [["Schizosaccharomyces pombe",
+            ["Eremothecium gossypii", "Saccharomyces cerevisiae"]],
+            [["Caenorhabditis elegans", "Caenorhabditis briggsae"],
+              [["Anopheles gambiae str", "Drosophila melanogaster"],
+                [["Takifugu rubripes", "Danio rerio"],
+                  ["Gallus gallus", [
+                    ["Rattus norvegicus", "Mus musculus"],
+                    ["Homo sapiens", "Pan troglodytes"]]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+]
