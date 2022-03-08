@@ -181,7 +181,7 @@ const NameVisualizer = ({nameHover, highlightIdx}) => (
     </svg>
 )
 
-const NucleotidVisualizer = ({letterDescriptors}) => (
+const NucleotidVisualizer = React.memo(({letterDescriptors}) => (
     <svg viewBox={`0 0 ${VIEWBOX_C.w} ${VIEWBOX_C.h}`} style={{}}>
         {letterDescriptors.map(({x, y, c}, idx) => (
             <g key={idx}>
@@ -193,7 +193,7 @@ const NucleotidVisualizer = ({letterDescriptors}) => (
             </g>
         ))}
     </svg>
-)
+))
 
 const ResultVisualizer = ({resultDescriptors}) => (
     <svg viewBox={`0 0 ${VIEWBOX_E.w} ${VIEWBOX_E.h}`} style={{}}>
