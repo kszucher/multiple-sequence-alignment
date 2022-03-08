@@ -91,17 +91,10 @@ const speciesProcessor = {
     },
     parse: (cs, path) => {
         if (Array.isArray(cs)) {
-            cs.map((arrEl, idx) => {
-                speciesProcessor.parse(arrEl, [...path, 'p', idx])
-            })
+            cs.map((arrEl, idx) => {speciesProcessor.parse(arrEl, [...path, 'p', idx])})
         } else {
-            speciesProcessor.nucleotidMat.push([
-                ...nucleotides.find(el => el.name === cs).sequence
-            ])
-            subsasgn(speciesProcessor.speciesStructure, path, {
-                name: cs,
-                nodeHeight: LETTER_SIZE
-            })
+            speciesProcessor.nucleotidMat.push([...nucleotides.find(el => el.name === cs).sequence])
+            subsasgn(speciesProcessor.speciesStructure, path, { name: cs, nodeHeight: LETTER_SIZE })
         }
     },
     measure: (cn, path) => {
@@ -146,114 +139,79 @@ const speciesProcessor = {
         } else {
             speciesProcessor.numSpecies++
         }
-    },
-}
-
-const SpeciesPath = ({el, highlight}) => {
-    const {sx, sy, ex, ey} = el
-    return (
-        <path
-            d={getEdgePath([sx, sy, ex, ey])}
-            strokeWidth={highlight.highlight ? 4 : 2}
-            stroke={highlight.highlight ? '#1D5567' : '#04AB96'}
-            fill={'none'}
-            vectorEffect={'non-scaling-stroke'}
-        >
-        </path>
-    )
+    }
 }
 
 const SpeciesPathVisualizer = ({pathDescriptors, highlightDescriptors}) => {
     return (
         <svg viewBox={`0 0 ${VIEWBOX_A.w} ${VIEWBOX_A.h}`} style={{backgroundColor: '#ffffff'}}>
-            {pathDescriptors.map((el, idx) => (
-                <SpeciesPath
-                    key={'unique' + Math.random(100)}
-                    el={el}
-                    idx={idx}
-                    highlight={highlightDescriptors[idx]}/>
-            ))}
-        </svg>
-    )
-}
-
-const NameVisualizer = ({nameHover, highlightIdx}) => {
-    return (
-        <svg viewBox={`0 0 ${VIEWBOX_B.w} ${VIEWBOX_B.h}`} style={{backgroundColor: '#FFFFFF'}}>
-            {nucleotides.map((el, idx) => (
-                <text
-                    x={20}
-                    y={idx*LETTER_SIZE + LETTER_SIZE / 2}
-                    key={'text' + idx}
-                    fontFamily="Roboto"
-                    fontSize={FONT_SIZE}
-                    fontWeight={idx===highlightIdx ? 'bold' : 'normal'}
-                    fill="black"
-                    textAnchor="start"
-                    dominantBaseline="middle"
-                    onMouseEnter={() => nameHover(el.name, idx)}
+            {pathDescriptors.map(({sx, sy, ex, ey}, idx) => (
+                <path
+                    d={getEdgePath([sx, sy, ex, ey])}
+                    strokeWidth={highlightDescriptors[idx].highlight ? 4 : 2}
+                    stroke={highlightDescriptors[idx].highlight ? '#1D5567' : '#04AB96'}
+                    fill={'none'}
+                    vectorEffect={'non-scaling-stroke'}
+                    key={Math.random()}
                 >
-                    {el.name}
+                </path>
+            ))}
+        </svg>
+    )
+}
+
+const NameVisualizer = ({nameHover, highlightIdx}) => (
+    <svg viewBox={`0 0 ${VIEWBOX_B.w} ${VIEWBOX_B.h}`} style={{backgroundColor: '#FFFFFF'}}>
+        {nucleotides.map(({name}, idx) => (
+            <text
+                x={20}
+                y={idx*LETTER_SIZE + LETTER_SIZE / 2}
+                key={'text' + idx}
+                fontFamily="Roboto"
+                fontSize={FONT_SIZE}
+                fontWeight={idx===highlightIdx ? 'bold' : 'normal'}
+                fill="black"
+                textAnchor="start"
+                dominantBaseline="middle"
+                onMouseEnter={() => nameHover(name, idx)}
+            >
+                {name}
+            </text>
+        ))}
+    </svg>
+)
+
+const NucleotidVisualizer = ({letterDescriptors}) => (
+    <svg viewBox={`0 0 ${VIEWBOX_C.w} ${VIEWBOX_C.h}`} style={{}}>
+        {letterDescriptors.map(({x, y, c}, idx) => (
+            <g key={idx}>
+                <rect x={x} y={y} width={LETTER_SIZE} height={LETTER_SIZE} key={Math.random()} fill={nucleotidColors[c]}>
+                </rect>
+                <text x={x + LETTER_SIZE / 2} y={y + LETTER_SIZE / 2 + 3} key={Math.random()} {...svgFont}>
+                    {c}
                 </text>
-            ))}
-        </svg>
-    )
-}
+            </g>
+        ))}
+    </svg>
+)
 
-const NucleotidVisualizer = ({nucleotidMat, highlightIdx}) => {
-    const horzLen = nucleotidMat[0]?.length
-    const vertLen = nucleotidMat?.length
-    const horzLinSpace = linspace(0, LETTER_SIZE*horzLen, horzLen, false)
-    const vertLinSpace = linspace(0, LETTER_SIZE*vertLen, vertLen, false)
-    const letterDescriptors = nucleotidMat
-        .map((iEl, iIdx) => iEl
-            .map((jEl, jIdx) => ({
-                    x: horzLinSpace[jIdx],
-                    y: vertLinSpace[iIdx],
-                    c: nucleotidMat[iIdx][jIdx],
-                    fw: iIdx === highlightIdx ? 'bold' : 'normal'
-                }))).flat()
-    return (
-        <svg viewBox={`0 0 ${VIEWBOX_C.w} ${VIEWBOX_C.h}`} style={{}}>
-            {letterDescriptors.map(({x, y, c, fw}, idx) => (
-                <g key={idx}>
-                    <rect x={x} y={y} width={LETTER_SIZE} height={LETTER_SIZE} key={Math.random()} fill={nucleotidColors[c]}>
-                    </rect>
-                    <text x={x + LETTER_SIZE / 2} y={y + LETTER_SIZE / 2 + 3} key={Math.random()} fontWeight={fw} {...svgFont}>
-                        {c}
-                    </text>
-                </g>
-            ))}
-        </svg>
-    )
-}
-
-const ResultVisualizer = ({mostFrequentNucleotidMat}) => {
-    const horzLen = mostFrequentNucleotidMat.length
-    const horzLinSpace = linspace(0, LETTER_SIZE*horzLen, horzLen, false)
-    const resultDescriptors = mostFrequentNucleotidMat.map((el, idx) => ({
-        x: horzLinSpace[idx],
-        c: maxOccurence(el),
-        h: el[maxOccurence(el)]
-    }))
-    return (
-        <svg viewBox={`0 0 ${VIEWBOX_E.w} ${VIEWBOX_E.h}`} style={{}}>
-            {resultDescriptors.map(({x, y, h, c}, idx) => (
-                <g key={idx}>
-                    <rect x={x} y={y} width={LETTER_SIZE} height={h*4} key={Math.random()} fill={nucleotidColors[c]}>
-                    </rect>
-                    <text x={x + LETTER_SIZE / 2} y={LETTER_SIZE / 2} key={'text' + x*10 + y}{...svgFont}>
-                        {c}
-                    </text>
-                </g>
-            ))}
-        </svg>
-    )
-}
+const ResultVisualizer = ({resultDescriptors}) => (
+    <svg viewBox={`0 0 ${VIEWBOX_E.w} ${VIEWBOX_E.h}`} style={{}}>
+        {resultDescriptors.map(({x, y, h, c}, idx) => (
+            <g key={idx}>
+                <rect x={x} y={y} width={LETTER_SIZE} height={h*4} key={Math.random()} fill={nucleotidColors[c]}>
+                </rect>
+                <text x={x + LETTER_SIZE / 2} y={LETTER_SIZE / 2} key={'text' + x*10 + y}{...svgFont}>
+                    {c}
+                </text>
+            </g>
+        ))}
+    </svg>
+)
 
 export function Msa () {
-    const [nucleotidMat, setNucleotidMat] = useState([])
-    const [mostFrequentNucleotidMat, setMostFrequentNucleotidMat] = useState([])
+    const [letterDescriptors, setLetterDescriptors] = useState([])
+    const [resultDescriptors, setResultDescriptors] = useState([])
     const [pathDescriptors, setPathDescriptors] = useState([])
     const [highlightIdx, setHighlightIdx] = useState('')
     const [highlightDescriptors, setHighlightDescriptors] = useState([])
@@ -264,10 +222,31 @@ export function Msa () {
     }
     useEffect(() => {
         speciesProcessor.init('')
+        const nucleotidMat = speciesProcessor.nucleotidMat
+        const nucleotidMatT = transpose(speciesProcessor.nucleotidMat)
+        const mostFrequent = nucleotidMatT.map(el => occurrences(el))
+
+        const horzLen = speciesProcessor.nucleotidMat[0]?.length
+        const vertLen = speciesProcessor.nucleotidMat?.length
+        const horzLinSpace = linspace(0, LETTER_SIZE*horzLen, horzLen, false)
+        const vertLinSpace = linspace(0, LETTER_SIZE*vertLen, vertLen, false)
+
+        setLetterDescriptors(nucleotidMat
+            .map((iEl, iIdx) => iEl
+                .map((jEl, jIdx) => ({
+                    x: horzLinSpace[jIdx],
+                    y: vertLinSpace[iIdx],
+                    c: nucleotidMat[iIdx][jIdx],
+                }))).flat())
+
+        setResultDescriptors(mostFrequent.map((el, idx) => ({
+            x: horzLinSpace[idx],
+            c: maxOccurence(el),
+            h: el[maxOccurence(el)]
+        })))
+
         setPathDescriptors(speciesProcessor.pathDescriptors)
         setHighlightDescriptors(speciesProcessor.highlightDescriptors)
-        setNucleotidMat(speciesProcessor.nucleotidMat)
-        setMostFrequentNucleotidMat(transpose(speciesProcessor.nucleotidMat).map(el => occurrences(el)))
     }, [])
     return (
         <div style={{ ...da, flexDirection: 'column', paddingTop: 100, flexWrap: 'wrap',  }}>
@@ -282,14 +261,14 @@ export function Msa () {
                     <NameVisualizer  {...{nameHover}} {...{highlightIdx}} />
                 </div>
                 <div style={{ width: VIEWBOX_C.w, height: VIEWBOX_C.h }}>
-                    <NucleotidVisualizer {...{nucleotidMat}} {...{highlightIdx}}/>
+                    <NucleotidVisualizer letterDescriptors={letterDescriptors}/>
                 </div>
             </div>
             <div style={{ ...da, cursor: 'pointer' }}>
                 <div style={{ width: VIEWBOX_D.w, height: VIEWBOX_D.h }}>
                 </div>
                 <div style={{ ...pb, borderRadius: '0 0 16px 16px', width: VIEWBOX_E.w, height: VIEWBOX_E.h }}>
-                    <ResultVisualizer {...{mostFrequentNucleotidMat}}/>
+                    <ResultVisualizer resultDescriptors={resultDescriptors}/>
                 </div>
             </div>
         </div>
