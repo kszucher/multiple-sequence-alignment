@@ -16,27 +16,9 @@ const pb = {padding: 10, backgroundColor: '#FFF'}
 const svgFont = {fontFamily:"Roboto", fontSize:FONT_SIZE, fill:"#000", textAnchor:"middle", dominantBaseline:"middle"}
 
 const nucleotidColors = {
-    '-': '#FFFFFF',
-    A: '#f8a68d',
-    C: '#f6a1a6',
-    D: '#f284b2',
-    E: '#cc69a7',
-    F: '#ec7079',
-    G: '#8869a6',
-    H: '#b88bbe',
-    I: '#b2bee1',
-    K: '#91c4e8',
-    L: '#8095cc',
-    M: '#d1a5cc',
-    N: '#f6dd6e',
-    P: '#e9bebc',
-    Q: '#75cbe8',
-    R: '#a9dde4',
-    S: '#80bfb0',
-    T: '#b3ddd2',
-    V: '#d2dde4',
-    W: '#f5ba93',
-    Y: '#ef9d6a',
+    '-': '#FFFFFF', A: '#f8a68d', C: '#f6a1a6', D: '#f284b2', E: '#cc69a7', F: '#ec7079', G: '#8869a6',
+    H: '#b88bbe', I: '#b2bee1', K: '#91c4e8', L: '#8095cc', M: '#d1a5cc', N: '#f6dd6e', P: '#e9bebc',
+    Q: '#75cbe8', R: '#a9dde4', S: '#80bfb0', T: '#b3ddd2', V: '#d2dde4', W: '#f5ba93', Y: '#ef9d6a',
 }
 
 const subsasgn = (obj, path, value) => {
@@ -71,6 +53,14 @@ const getEdgePath = ([x1, y1, x2, y2]) => {
     return `${M}${x1},${y1}, L${m1x},${m1y}, L${m2x},${m2y}, L${x2},${y2}`
 }
 
+const getCoords = (e) => {
+    const nRect = document.getElementById('nRect')
+    const rect = nRect.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    return [x, y]
+}
+
 const speciesProcessor = {
     speciesStructure: {},
     numSpecies: 0,
@@ -88,6 +78,7 @@ const speciesProcessor = {
         }
         speciesProcessor.measure(speciesProcessor.speciesStructure, [])
         speciesProcessor.place(speciesProcessor.speciesStructure)
+
     },
     parse: (cs, path) => {
         if (Array.isArray(cs)) {
@@ -148,7 +139,7 @@ const SpeciesPathVisualizer = ({pathDescriptors, highlightDescriptors}) => {
             {pathDescriptors.map(({sx, sy, ex, ey}, idx) => (
                 <path
                     d={getEdgePath([sx, sy, ex, ey])}
-                    strokeWidth={highlightDescriptors[idx].highlight ? 4 : 2}
+                    strokeWidth={highlightDescriptors[idx].highlight ? 4 : 1}
                     stroke={highlightDescriptors[idx].highlight ? '#1D5567' : '#04AB96'}
                     fill={'none'}
                     vectorEffect={'non-scaling-stroke'}
@@ -160,7 +151,7 @@ const SpeciesPathVisualizer = ({pathDescriptors, highlightDescriptors}) => {
     )
 }
 
-const NameVisualizer = ({nameHover, highlightIdx}) => (
+const NameVisualizer = ({highlightIdx}) => (
     <svg viewBox={`0 0 ${VIEWBOX_B.w} ${VIEWBOX_B.h}`} style={{backgroundColor: '#FFFFFF'}}>
         {nucleotides.map(({name}, idx) => (
             <text
@@ -170,10 +161,9 @@ const NameVisualizer = ({nameHover, highlightIdx}) => (
                 fontFamily="Roboto"
                 fontSize={FONT_SIZE}
                 fontWeight={idx===highlightIdx ? 'bold' : 'normal'}
-                fill="black"
+                fill={idx===highlightIdx ? '#1D5567' : '#04AB96'}
                 textAnchor="start"
                 dominantBaseline="middle"
-                onMouseEnter={() => nameHover(name, idx)}
             >
                 {name}
             </text>
@@ -182,18 +172,32 @@ const NameVisualizer = ({nameHover, highlightIdx}) => (
 )
 
 const NucleotidVisualizer = React.memo(({letterDescriptors}) => (
-    <svg viewBox={`0 0 ${VIEWBOX_C.w} ${VIEWBOX_C.h}`} style={{}}>
+    <g>
         {letterDescriptors.map(({x, y, c}, idx) => (
             <g key={idx}>
-                <rect x={x} y={y} width={LETTER_SIZE} height={LETTER_SIZE} key={Math.random()} fill={nucleotidColors[c]}>
+                <rect x={x} y={y} width={LETTER_SIZE} height={LETTER_SIZE} key={Math.random()}
+                      fill={nucleotidColors[c]}
+                      fillOpacity={0.6}
+                >
                 </rect>
                 <text x={x + LETTER_SIZE / 2} y={y + LETTER_SIZE / 2 + 3} key={Math.random()} {...svgFont}>
                     {c}
                 </text>
             </g>
         ))}
-    </svg>
+    </g>
 ))
+
+const Target = ({hoverPos, hoverLen}) => {
+    const format = {stroke:'#1D5567', strokeWidth:2, fill: 'none'}
+    return (
+        <g>
+            <rect x={hoverPos[0]*LETTER_SIZE} y={0} width={LETTER_SIZE} height={hoverLen[1]*LETTER_SIZE} {...format}/>
+            <rect x={0} y={hoverPos[1]*LETTER_SIZE} width={hoverLen[0]*LETTER_SIZE} height={LETTER_SIZE} {...format}/>
+
+        </g>
+    )
+}
 
 const ResultVisualizer = ({resultDescriptors}) => (
     <svg viewBox={`0 0 ${VIEWBOX_E.w} ${VIEWBOX_E.h}`} style={{}}>
@@ -215,9 +219,13 @@ export function Msa () {
     const [pathDescriptors, setPathDescriptors] = useState([])
     const [highlightIdx, setHighlightIdx] = useState('')
     const [highlightDescriptors, setHighlightDescriptors] = useState([])
-    const nameHover = (name, idx) => {
-        speciesProcessor.init(name)
-        setHighlightIdx(idx)
+    const [hoverPos, setHoverPos] = useState([0,0])
+    const [hoverLen, setHoverLen] = useState([0,0])
+    const calcHover = e => {
+        const coords = getCoords(e).map(el => (Math.floor(el/LETTER_SIZE)))
+        setHoverPos(coords)
+        speciesProcessor.init((nucleotides)[coords[1]].name)
+        setHighlightIdx(coords[1])
         setHighlightDescriptors(speciesProcessor.highlightDescriptors.slice(0))
     }
     useEffect(() => {
@@ -225,12 +233,10 @@ export function Msa () {
         const nucleotidMat = speciesProcessor.nucleotidMat
         const nucleotidMatT = transpose(speciesProcessor.nucleotidMat)
         const mostFrequent = nucleotidMatT.map(el => occurrences(el))
-
         const horzLen = speciesProcessor.nucleotidMat[0]?.length
         const vertLen = speciesProcessor.nucleotidMat?.length
         const horzLinSpace = linspace(0, LETTER_SIZE*horzLen, horzLen, false)
         const vertLinSpace = linspace(0, LETTER_SIZE*vertLen, vertLen, false)
-
         setLetterDescriptors(nucleotidMat
             .map((iEl, iIdx) => iEl
                 .map((jEl, jIdx) => ({
@@ -238,30 +244,32 @@ export function Msa () {
                     y: vertLinSpace[iIdx],
                     c: nucleotidMat[iIdx][jIdx],
                 }))).flat())
-
         setResultDescriptors(mostFrequent.map((el, idx) => ({
             x: horzLinSpace[idx],
             c: maxOccurence(el),
             h: el[maxOccurence(el)]
         })))
-
         setPathDescriptors(speciesProcessor.pathDescriptors)
         setHighlightDescriptors(speciesProcessor.highlightDescriptors)
+        setHoverLen([horzLen, vertLen])
     }, [])
     return (
         <div style={{ ...da, flexDirection: 'column', paddingTop: 100, flexWrap: 'wrap',  }}>
-            <div style={{ ...pb, borderRadius: '16px 16px 0 0', fontSize: 30, fontFamily: 'Roboto' }}>
+            <div style={{ ...pb, borderRadius: '16px 16px 0 0', fontSize: 30, fontFamily: 'Roboto', color: '#1D5567' }}>
                 {'MULTI SEQUENCE ALIGNMENT'}
             </div>
-            <div style={{ ...da, ...pb, borderRadius: '16px 16px 0 16px', cursor: 'pointer' }}>
+            <div style={{ ...da, ...pb, borderRadius: '16px 16px 0 16px'}}>
                 <div style={{ width: VIEWBOX_A.w, height: VIEWBOX_A.h }}>
                     <SpeciesPathVisualizer {...{pathDescriptors}} {...{highlightDescriptors}}/>
                 </div>
                 <div style={{ width: VIEWBOX_B.w, height: VIEWBOX_B.h }}>
-                    <NameVisualizer  {...{nameHover}} {...{highlightIdx}} />
+                    <NameVisualizer  {...{highlightIdx}} />
                 </div>
-                <div style={{ width: VIEWBOX_C.w, height: VIEWBOX_C.h }}>
-                    <NucleotidVisualizer letterDescriptors={letterDescriptors}/>
+                <div id='nRect' onMouseMove={e=>calcHover(e)} style={{ width: VIEWBOX_C.w, height: VIEWBOX_C.h }}>
+                    <svg viewBox={`0 0 ${VIEWBOX_C.w} ${VIEWBOX_C.h}`}>
+                        <NucleotidVisualizer letterDescriptors={letterDescriptors}/>
+                        <Target hoverPos={hoverPos} hoverLen={hoverLen}/>
+                    </svg>
                 </div>
             </div>
             <div style={{ ...da, cursor: 'pointer' }}>

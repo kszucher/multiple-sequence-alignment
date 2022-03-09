@@ -17,7 +17,7 @@
     {"name": "Drosophila melanogaster", "sequence": "GRIGTNLRIGIVGNPNVGKSTFFNVLTQSAENF"},
     {"name": "Takifugu rubripes", "sequence": "GRFGTSLKIGIVGLPNVGKSTFFNVLTKSAENF"},
     {"name": "Danio rerio", "sequence": "GRFGTSLKIGIVGLPNVGKSTFFNVLTKSAENF"},
-    {"name": "Gallus gallus", "sequence": "---------------------------------"},
+    {"name": "Gallus gallus", "sequence": "GRFGTSLKIGIVGLPNVGKSTFFNVLTNSAENF"},
     {"name": "Rattus norvegicus", "sequence": "GRFGTSLKIGIVGLPNVGKSTFFNVLTNSAENF"},
     {"name": "Mus musculus", "sequence": "GRFGTSLKIGIVGLPNVGKSTFFNVLTNSAENF"},
     {"name": "Homo sapiens", "sequence": "GRFGTSLKIGIVGLPNVGKSTFFNVLTNSAENF"},
