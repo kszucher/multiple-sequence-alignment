@@ -12,7 +12,7 @@ const FONT_SIZE = 16
 const PATH_DISTANCE = 20
 
 const da = {display: 'flex', alignItems: 'center'}
-const pb = {padding: 10, backgroundColor: '#FFF'}
+const pb = {padding: 10, backgroundColor: '#FFF', borderRadius: '16px 16px 0 0', border: '4px solid #EAF6F4'}
 const svgFont = {fontFamily:"Roboto", fontSize:FONT_SIZE, fill:"#000", textAnchor:"middle", dominantBaseline:"middle"}
 
 const nucleotidColors = {
@@ -255,7 +255,7 @@ export function Msa () {
     }, [])
     return (
         <div style={{ ...da, flexDirection: 'column', paddingTop: 100, flexWrap: 'wrap',  }}>
-            <div style={{ ...pb, borderRadius: '16px 16px 0 0', fontSize: 30, fontFamily: 'Roboto', color: '#1D5567' }}>
+            <div style={{ ...pb, fontSize: 30, fontFamily: 'Roboto', color: '#1D5567' }}>
                 {'MULTI SEQUENCE ALIGNMENT'}
             </div>
             <div style={{ ...da, ...pb, borderRadius: '16px 16px 0 16px'}}>
